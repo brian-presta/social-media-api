@@ -40,7 +40,7 @@ const userController = {
             res.status(400).json(err)
         }
     },
-    async updateUser({ params,body },res) {
+    async updateUser({ params, body },res) {
         try {
             const user = await User.findOneAndUpdate(
                 {_id:params.id},
