@@ -73,6 +73,42 @@ const userController = {
         catch(err) {
             res.status(400).json(err)
         }
+    },
+    async addFriend({ params }, res) {
+        try {
+            const { userId,friendId} = params
+            const user = await User.findOneAndUpdate(
+                {_id:userId},
+                {$push: {friends: friendId}},
+                {new: true}
+            )
+            if (!user) {
+                res.json({message: 'No user found with that id'})
+                return
+            }
+            res.json(user)
+        }
+        catch(err) {
+            res.status(400).json(err)
+        }
+    },
+    async removeFriend({ params }, res) {
+        try {
+            const { userId,friendId} = params
+            const user = await User.findOneAndUpdate(
+                {_id:userId},
+                {$pull: {friends: friendId}},
+                {new: true}
+            )
+            if (!user) {
+                res.json({message: 'No user found with that id'})
+                return
+            }
+            res.json(user)
+        }
+        catch(err) {
+            res.status(400).json(err)
+        }
     }
 }
 
