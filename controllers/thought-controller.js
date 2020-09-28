@@ -4,6 +4,7 @@ const thoughtController = {
     async getAllThoughts(req, res) {
         try {
             const thoughts = await Thought.find({})
+            .select('-__v')
             res.json(thoughts)
         }
         catch(err) {
@@ -17,6 +18,7 @@ const thoughtController = {
                 path: 'reactions',
                 select: '-__v'
             })
+            .select('-__v')
             if (!thought) {
                 res.json({message: 'No thought found with that id'})
                 return
@@ -36,7 +38,9 @@ const thoughtController = {
             }
             const thought = await Thought.create(body)
             await user.update({$push: {thoughts: thought._id} })
-            res.json(thought)
+            let thoughtResponse = thought.toObject()
+            delete thoughtResponse.__v
+            res.json(thoughtResponse)
         }
         catch(err) {
             res.status(400).json(err)
@@ -49,6 +53,7 @@ const thoughtController = {
                 body,
                 {new: true}
             )
+            .select("-__v")
             if (!thought) {
                 res.json({message: 'No thought found with that id'})
                 return
@@ -61,10 +66,8 @@ const thoughtController = {
     },
     async deleteThought({ params: {id} },res) {
         try {
-            const thought = await Thought.findOneAndDelete(
-                {_id:id},
-                {new: true}
-            )
+            const thought = await Thought.findOneAndDelete({_id:id})
+            .select("-__v")
             if (!thought) {
                 res.json({message: 'No thought found with that id'})
                 return
@@ -82,6 +85,7 @@ const thoughtController = {
                 {$push: {reactions: body} },
                 {new: true}
             )
+            .select("-__v")
             if (!thought) {
                 res.json({message: 'No thought found with that id'})
                 return
@@ -99,6 +103,7 @@ const thoughtController = {
                 {_id: thoughtId},
                 {$pull: {reactions: {replyId} } }
             )
+            .select("-__v")
             if (!thought) {
                 res.json({message: 'No thought found with that id'})
                 return

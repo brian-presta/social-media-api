@@ -4,6 +4,7 @@ const userController = {
     async getAllUsers(req,res) {
         try {
             const users = await User.find({})
+            .select('-__v')
             res.json(users)
         }
         catch(err) {
@@ -21,6 +22,7 @@ const userController = {
                 path: 'friends',
                 select: '-__v'
             })
+            .select('-__v')
             if (!user) {
                 res.json({message: 'No user found with that id'})
                 return
@@ -34,7 +36,11 @@ const userController = {
     async createNewUser({ body },res) {
         try {
             const user = await User.create(body)
-            res.json(user)
+            // we can't use select() to remove the __v attribute after creating, so we cast the mongo object to a standard object 
+            // and remove __v before sending the response
+            let userResponse = user.toObject()
+            delete userResponse.__v
+            res.json(userResponse)
         }
         catch(err) {
             res.status(400).json(err)
@@ -47,6 +53,7 @@ const userController = {
                 body,
                 {new: true}
             )
+            .select('-__v')
             if (!user) {
                 res.json({message: 'No user found with that id'})
                 return
@@ -59,15 +66,15 @@ const userController = {
     },
     async deleteUser({ params:{id}, res}) {
         try {
-            const user = await User.findOneAndDelete(
-                {_id:id},
-                {new:true}
-            )
+            const user = await User.findOneAndDelete({_id:id})
+            .select('-__v')
             if (!user) {
                 res.json({message: 'No user found with that id'})
                 return
             }
-            const thoughts = await Thought.deleteMany({userName:user.userName})
+            if (user.thoughts.length > 0) {
+                await Thought.deleteMany({userName:user.userName})
+            }
             res.json(user)
         }
         catch(err) {
@@ -82,6 +89,7 @@ const userController = {
                 {$push: {friends: friendId}},
                 {new: true}
             )
+            .select('-__v')
             if (!user) {
                 res.json({message: 'No user found with that id'})
                 return
@@ -100,6 +108,7 @@ const userController = {
                 {$pull: {friends: friendId}},
                 {new: true}
             )
+            .select('-__v')
             if (!user) {
                 res.json({message: 'No user found with that id'})
                 return

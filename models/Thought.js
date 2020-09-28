@@ -42,7 +42,7 @@ const ThoughtSchema = new Schema(
             maxlength: 280
         },
         userName: {
-            type: Schema.Types.ObjectId,
+            type: String,
             ref: 'User',
             required: true
         },
